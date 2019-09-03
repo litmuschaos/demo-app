@@ -1,7 +1,7 @@
 ---
 include:
   ## create chaosengine to inject chaos on the app.... 
-  #- remote: 'https://github.com/karthiksatchitanand/litmus/raw/master/gitlab/pod-templates/pod-failure-template.yml'
+  ##- remote: 'https://github.com/karthiksatchitanand/litmus/raw/master/gitlab/pod-templates/pod-failure-template.yml'
   - remote: 'https://raw.githubusercontent.com/litmuschaos/litmus/master/ci/gitlab/templates/pod-delete/pod-failure-template.yml'
 
 stages:
