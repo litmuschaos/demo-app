@@ -1,0 +1,47 @@
+---
+include:
+  ## create chaosengine to inject chaos on the app.... 
+  - remote: 'https://github.com/karthiksatchitanand/litmus/raw/master/gitlab/pod-templates/pod-failure-template.yml'
+
+stages:
+  - appDeploy
+  - chaosInfraSetup
+  - chaosChartPull
+  - chaosInject
+  - chaosInfraCleanup
+
+Deploy to Staging:
+  stage: appDeploy
+  image: ksatchit/gitlab-runner:ci
+  script:
+    - kubectl apply -f ./sample_apps/nginx/stateless/ 
+
+Setup Chaos Infra:
+  stage: chaosInfraSetup
+  image: ksatchit/gitlab-runner:ci
+  script:
+    - ./hack/helm_setup --name=litmus --chart=litmus --namespace=litmus 
+  
+Install Chaos Charts:
+  stage: chaosChartPull
+  image: ksatchit/gitlab-runner:ci
+  script:
+    - ./hack/helm_setup --name=chaos-experiments --chart=kubernetes --namespace=default 
+
+Inject Pod Failure Chaos:
+  stage: chaosInject
+  extends: .pod_failure_template
+  before_script:
+  variables:
+    app_ns: default
+    app_label: "app=nginx"
+    app_kind: deployment
+    app_svc_account: nginx
+   
+Cleanup Chaos Infra:
+  stage: chaosInfraCleanup
+  image: ksatchit/gitlab-runner:ci
+  script:
+    - ./hack/helm_teardown litmus chaos-experiments
+    - ./hack/helm_teardown crds 
+  when: always
